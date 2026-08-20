@@ -38,6 +38,21 @@ jobs:
           echo "Project reconstructed:"
           find src/main/java -type f | wc -l
 
+      - name: Add missing dependency repositories
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('build.gradle')
+          s = p.read_text()
+          needle = '    mavenCentral()\n'
+          replacement = "    mavenCentral()\n    maven { name = 'BlameJared'; url = 'https://maven.blamejared.com/' }\n    maven { name = 'Siphalor'; url = 'https://maven.siphalor.de/' }\n"
+          if 'maven.blamejared.com' not in s:
+              s = s.replace(needle, replacement, 1)
+          p.write_text(s)
+          PY
+          grep -n "BlameJared\|Siphalor" build.gradle
+
       - name: Build
         run: gradle clean build --stacktrace
 
