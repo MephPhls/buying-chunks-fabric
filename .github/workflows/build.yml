@@ -38,6 +38,18 @@ jobs:
           echo "Project reconstructed:"
           find src/main/java -type f | wc -l
 
+      - name: Apply port2 right-click overrides
+        shell: bash
+        run: |
+          cat feature-port2/p2_00.b64 feature-port2/p2_01.b64 | base64 -d > port2-overrides.tar.xz
+          echo "7506e84330acde503c7204726dca3a4a8a274f4c6becaac8031ac1627c7ca455  port2-overrides.tar.xz" | sha256sum -c -
+          tar -xJf port2-overrides.tar.xz
+          rm port2-overrides.tar.xz
+          grep -n "mod_version" gradle.properties
+          test -f src/main/java/snoopypupser/buyingchunks/client/ChunkManageScreen.java
+          test -f src/main/java/snoopypupser/buyingchunks/network/UnclaimChunkPacket.java
+          grep -n "ChunkButtonManageMixin" src/main/resources/buyingchunks.mixins.json
+
       - name: Add missing dependency repositories
         shell: bash
         run: |
@@ -60,6 +72,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: buying-chunks-fabric-build
+          name: buying-chunks-fabric-build-port2
           path: build/libs/*.jar
           if-no-files-found: ignore
