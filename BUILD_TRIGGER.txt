@@ -1,1 +1,2 @@
 Trigger clean Fabric port compilation via GitHub Actions.
+Attempt 2: Gradle 9.5 for Loom 1.17.
