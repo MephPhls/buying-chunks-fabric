@@ -43,6 +43,15 @@ jobs:
         run: |
           cp -f overrides/src/main/java/snoopypupser/buyingchunks/mixin/GuiMixin.java src/main/java/snoopypupser/buyingchunks/mixin/GuiMixin.java
           cp -f overrides/src/main/java/snoopypupser/buyingchunks/mixin/MouseHandlerMixin.java src/main/java/snoopypupser/buyingchunks/mixin/MouseHandlerMixin.java
+          grep -n "method_1753\|method_1601" src/main/java/snoopypupser/buyingchunks/mixin/GuiMixin.java src/main/java/snoopypupser/buyingchunks/mixin/MouseHandlerMixin.java
+
+      - name: Apply Port4 overrides
+        shell: bash
+        run: |
+          cat port4parts/p00.b64 port4parts/p01.b64 port4parts/p02.b64 | base64 -d > port4-overrides.tar.xz
+          echo "27def8570690d9a8930bf39702c9a9580430e486a1b77ff07851cbb1d5a54b53  port4-overrides.tar.xz" | sha256sum -c -
+          tar -xJf port4-overrides.tar.xz
+          rm port4-overrides.tar.xz
           python3 - <<'PY'
           from pathlib import Path
           p = Path('gradle.properties')
@@ -50,12 +59,16 @@ jobs:
           lines = []
           for line in s.splitlines():
               if line.startswith('mod_version='):
-                  line = 'mod_version=1.2.0-fabric-port3.1'
+                  line = 'mod_version=1.2.0-fabric-port4'
               lines.append(line)
           p.write_text('\n'.join(lines) + '\n')
           PY
-          grep -n "method_1753\|method_1601" src/main/java/snoopypupser/buyingchunks/mixin/GuiMixin.java src/main/java/snoopypupser/buyingchunks/mixin/MouseHandlerMixin.java
           grep -n "mod_version" gradle.properties
+          grep -n "RequestClaimShopSyncPacket" src/main/java/snoopypupser/buyingchunks/network/BuyingChunksNetwork.java
+          if grep -q "SpawnProtectionHandler.register" src/main/java/snoopypupser/buyingchunks/BuyingChunks.java; then
+            echo "Spawn protection is still registered"
+            exit 1
+          fi
 
       - name: Add missing dependency repositories
         shell: bash
