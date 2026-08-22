@@ -2,7 +2,7 @@ name: Build Fabric Mod
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, port4.1-admin-team-settings ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
