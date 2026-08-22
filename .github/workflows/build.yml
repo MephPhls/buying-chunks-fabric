@@ -2,7 +2,7 @@ name: Build Fabric Mod
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, port4.1-admin-team-settings ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
@@ -63,22 +63,22 @@ jobs:
           lines = []
           for line in s.splitlines():
               if line.startswith('mod_version='):
-                  line = 'mod_version=1.2.0-fabric-port4'
+                  line = 'mod_version=1.2.0-fabric-port4.1'
               lines.append(line)
           p.write_text('\n'.join(lines) + '\n')
           PY
           grep -n "mod_version" gradle.properties
           grep -n "RequestClaimShopSyncPacket" src/main/java/snoopypupser/buyingchunks/network/BuyingChunksNetwork.java
-          echo "Claim cost panel sources:"
-          grep -Rni "basecost.display" src/main/java || true
-          for f in $(grep -Rl "basecost.display" src/main/java || true); do
-            echo "===== $f ====="
-            nl -ba "$f"
-          done
           if grep -q "SpawnProtectionHandler.register" src/main/java/snoopypupser/buyingchunks/BuyingChunks.java; then
             echo "Spawn protection is still registered"
             exit 1
           fi
+
+      - name: Apply Port4.1 admin team settings fix
+        shell: bash
+        run: |
+          python3 overrides/patch_admin_team_settings.py
+          grep -n "pendingBoolValues\|pendingPrivacyValues\|block_edit_and_interact_mode" src/main/java/snoopypupser/buyingchunks/client/AdminServerTeamDetailScreen.java
 
       - name: Add missing dependency repositories
         shell: bash
