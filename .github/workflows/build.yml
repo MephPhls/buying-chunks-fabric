@@ -45,10 +45,24 @@ jobs:
           echo "7506e84330acde503c7204726dca3a4a8a274f4c6becaac8031ac1627c7ca455  port2-overrides.tar.xz" | sha256sum -c -
           tar -xJf port2-overrides.tar.xz
           rm port2-overrides.tar.xz
-          grep -n "mod_version" gradle.properties
           test -f src/main/java/snoopypupser/buyingchunks/client/ChunkManageScreen.java
           test -f src/main/java/snoopypupser/buyingchunks/network/UnclaimChunkPacket.java
           grep -n "ChunkButtonManageMixin" src/main/resources/buyingchunks.mixins.json
+
+      - name: Apply port3 territory and language fixes
+        shell: bash
+        run: |
+          mkdir -p src/main/resources/assets/buyingchunks/lang
+          cp feature-port3/es_es.json src/main/resources/assets/buyingchunks/lang/es_es.json
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('gradle.properties')
+          s = p.read_text()
+          s = s.replace('mod_version=1.2.0-fabric-port2', 'mod_version=1.2.0-fabric-port3')
+          p.write_text(s)
+          PY
+          grep -n "mod_version" gradle.properties
+          grep -n "Tierra de nadie\|Tierra de " src/main/resources/assets/buyingchunks/lang/es_es.json
 
       - name: Add missing dependency repositories
         shell: bash
@@ -68,10 +82,19 @@ jobs:
       - name: Build
         run: gradle clean build --stacktrace
 
+      - name: Verify port3 resources
+        shell: bash
+        run: |
+          JAR=$(find build/libs -maxdepth 1 -name '*.jar' ! -name '*sources*' | head -1)
+          test -n "$JAR"
+          unzip -l "$JAR" | grep 'assets/buyingchunks/lang/es_es.json'
+          unzip -p "$JAR" assets/buyingchunks/lang/es_es.json | grep 'Tierra de nadie'
+          unzip -p "$JAR" assets/buyingchunks/lang/es_es.json | grep 'Tierra de '
+
       - name: Upload JARs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: buying-chunks-fabric-build-port2
+          name: buying-chunks-fabric-build-port3
           path: build/libs/*.jar
           if-no-files-found: ignore
