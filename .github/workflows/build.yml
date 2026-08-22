@@ -49,8 +49,8 @@ jobs:
         shell: bash
         run: |
           echo "Port4 part hashes:"
-          sha256sum port4parts/p00.b64 port4parts/p01.b64 port4parts/p02.b64
-          cat port4parts/p00.b64 port4parts/p01.b64 port4parts/p02.b64 | base64 -d > port4-overrides.tar.xz
+          sha256sum port4parts/p00.b64 port4parts/p01.b64 port4parts/p02_0.b64 port4parts/p02_1.b64
+          cat port4parts/p00.b64 port4parts/p01.b64 port4parts/p02_0.b64 port4parts/p02_1.b64 | base64 -d > port4-overrides.tar.xz
           echo "Decoded Port4 archive hash:"
           sha256sum port4-overrides.tar.xz
           xz -t port4-overrides.tar.xz
@@ -69,6 +69,8 @@ jobs:
           PY
           grep -n "mod_version" gradle.properties
           grep -n "RequestClaimShopSyncPacket" src/main/java/snoopypupser/buyingchunks/network/BuyingChunksNetwork.java
+          echo "Claim cost panel strings/code:"
+          grep -RniE "Claim Cost|Costo de claim|Pok[eé]Coin por chunk|per Chunk|per chunk" src/main/java src/main/resources || true
           if grep -q "SpawnProtectionHandler.register" src/main/java/snoopypupser/buyingchunks/BuyingChunks.java; then
             echo "Spawn protection is still registered"
             exit 1
