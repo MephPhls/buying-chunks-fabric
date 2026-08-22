@@ -38,6 +38,51 @@ jobs:
           echo "Project reconstructed:"
           find src/main/java -type f | wc -l
 
+      - name: Apply port2 right-click overrides
+        shell: bash
+        run: |
+          cat feature-port2/p2_00.b64 feature-port2/p2_01.b64 | base64 -d > port2-overrides.tar.xz
+          echo "7506e84330acde503c7204726dca3a4a8a274f4c6becaac8031ac1627c7ca455  port2-overrides.tar.xz" | sha256sum -c -
+          tar -xJf port2-overrides.tar.xz
+          rm port2-overrides.tar.xz
+          test -f src/main/java/snoopypupser/buyingchunks/client/ChunkManageScreen.java
+          test -f src/main/java/snoopypupser/buyingchunks/network/UnclaimChunkPacket.java
+          grep -n "ChunkButtonManageMixin" src/main/resources/buyingchunks.mixins.json
+
+      - name: Apply port3 territory and language fixes
+        shell: bash
+        run: |
+          mkdir -p src/main/resources/assets/buyingchunks/lang
+          cp feature-port3/es_es.json src/main/resources/assets/buyingchunks/lang/es_es.json
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('gradle.properties')
+          s = p.read_text()
+          s = s.replace('mod_version=1.2.0-fabric-port2', 'mod_version=1.2.0-fabric-port3')
+          p.write_text(s)
+          PY
+
+      - name: Apply port4 GUI currency and keybind fixes
+        shell: bash
+        run: |
+          cat feature-port4/p4_00.b64 feature-port4/p4_01.b64 feature-port4/p4_02.b64 | base64 -d > port4-overrides.tar.xz
+          echo "07bacdd7cd10cae3ae6699cc7e863def5afb781abaec4497f9e0bd7f581eef56  port4-overrides.tar.xz" | sha256sum -c -
+          tar -xJf port4-overrides.tar.xz
+          rm port4-overrides.tar.xz
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('gradle.properties')
+          s = p.read_text()
+          s = s.replace('mod_version=1.2.0-fabric-port3', 'mod_version=1.2.0-fabric-port4')
+          p.write_text(s)
+          PY
+          test -f src/main/resources/assets/buyingchunks/lang/en_us.json
+          test -f src/main/resources/assets/buyingchunks/lang/es_es.json
+          test -f src/main/resources/assets/buyingchunks/lang/es_mx.json
+          grep -n "OPEN_DASHBOARD" src/main/java/snoopypupser/buyingchunks/client/ModKeyMappings.java
+          grep -n "Tierra de nadie" src/main/java/snoopypupser/buyingchunks/event/ChunkEnterHandler.java
+          grep -n "mod_version" gradle.properties
+
       - name: Add missing dependency repositories
         shell: bash
         run: |
@@ -56,10 +101,21 @@ jobs:
       - name: Build
         run: gradle clean build --stacktrace
 
+      - name: Verify port4 resources
+        shell: bash
+        run: |
+          JAR=$(find build/libs -maxdepth 1 -name '*.jar' ! -name '*sources*' | head -1)
+          test -n "$JAR"
+          unzip -l "$JAR" | grep 'assets/buyingchunks/lang/en_us.json'
+          unzip -l "$JAR" | grep 'assets/buyingchunks/lang/es_es.json'
+          unzip -l "$JAR" | grep 'assets/buyingchunks/lang/es_mx.json'
+          unzip -p "$JAR" assets/buyingchunks/lang/es_mx.json | grep 'Tienda de Chunks'
+          unzip -p "$JAR" assets/buyingchunks/lang/es_mx.json | grep 'Precio por chunk (PokéCoins)'
+
       - name: Upload JARs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: buying-chunks-fabric-build
+          name: buying-chunks-fabric-build-port4
           path: build/libs/*.jar
           if-no-files-found: ignore
