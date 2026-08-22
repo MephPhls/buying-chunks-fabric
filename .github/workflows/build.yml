@@ -38,6 +38,25 @@ jobs:
           echo "Project reconstructed:"
           find src/main/java -type f | wc -l
 
+      - name: Apply Port3.1 hotfix overrides
+        shell: bash
+        run: |
+          cp -f overrides/src/main/java/snoopypupser/buyingchunks/mixin/GuiMixin.java src/main/java/snoopypupser/buyingchunks/mixin/GuiMixin.java
+          cp -f overrides/src/main/java/snoopypupser/buyingchunks/mixin/MouseHandlerMixin.java src/main/java/snoopypupser/buyingchunks/mixin/MouseHandlerMixin.java
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('gradle.properties')
+          s = p.read_text()
+          lines = []
+          for line in s.splitlines():
+              if line.startswith('mod_version='):
+                  line = 'mod_version=1.2.0-fabric-port3.1'
+              lines.append(line)
+          p.write_text('\n'.join(lines) + '\n')
+          PY
+          grep -n "method_1753\|method_1601" src/main/java/snoopypupser/buyingchunks/mixin/GuiMixin.java src/main/java/snoopypupser/buyingchunks/mixin/MouseHandlerMixin.java
+          grep -n "mod_version" gradle.properties
+
       - name: Add missing dependency repositories
         shell: bash
         run: |
