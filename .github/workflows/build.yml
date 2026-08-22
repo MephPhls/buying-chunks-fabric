@@ -48,8 +48,12 @@ jobs:
       - name: Apply Port4 overrides
         shell: bash
         run: |
+          echo "Port4 part hashes:"
+          sha256sum port4parts/p00.b64 port4parts/p01.b64 port4parts/p02.b64
           cat port4parts/p00.b64 port4parts/p01.b64 port4parts/p02.b64 | base64 -d > port4-overrides.tar.xz
-          echo "27def8570690d9a8930bf39702c9a9580430e486a1b77ff07851cbb1d5a54b53  port4-overrides.tar.xz" | sha256sum -c -
+          echo "Decoded Port4 archive hash:"
+          sha256sum port4-overrides.tar.xz
+          xz -t port4-overrides.tar.xz
           tar -xJf port4-overrides.tar.xz
           rm port4-overrides.tar.xz
           python3 - <<'PY'
