@@ -69,8 +69,12 @@ jobs:
           PY
           grep -n "mod_version" gradle.properties
           grep -n "RequestClaimShopSyncPacket" src/main/java/snoopypupser/buyingchunks/network/BuyingChunksNetwork.java
-          echo "Claim cost panel strings/code:"
-          grep -RniE "Claim Cost|Costo de claim|Pok[eé]Coin por chunk|per Chunk|per chunk" src/main/java src/main/resources || true
+          echo "Claim cost panel sources:"
+          grep -Rni "basecost.display" src/main/java || true
+          for f in $(grep -Rl "basecost.display" src/main/java || true); do
+            echo "===== $f ====="
+            nl -ba "$f"
+          done
           if grep -q "SpawnProtectionHandler.register" src/main/java/snoopypupser/buyingchunks/BuyingChunks.java; then
             echo "Spawn protection is still registered"
             exit 1
