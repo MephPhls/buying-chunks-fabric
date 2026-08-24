@@ -1,0 +1,2 @@
+Trigger clean Fabric port compilation via GitHub Actions.
+Attempt 3: Gradle 9.5 + JEI/AMECS repositories.
